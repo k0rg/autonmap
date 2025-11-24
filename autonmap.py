@@ -116,9 +116,23 @@ def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vul
     # --- Step 3: Vuln Scan (Optional) ---
     if not skip_vuln:
         if not os.path.exists(f"{base_vuln}.xml"):
-            print_msg(f"[{target_ip}] Step 3: Vulnerability Scan")
-            cmd = ["nmap", "-n", "-Pn", "-sS", "--script", "vuln", "-p", port_list] + timing_args + [target_ip, "-oA", base_vuln]
-            run_command(cmd, verbose)
+            run_vuln = True
+            
+            # Interactive Prompt Logic (Only in verbose/sequential mode)
+            if verbose:
+                try:
+                    choice = input(f"\n{YELLOW}[?] Run vulnerability scan on {target_ip}? (y/N): {ENDC}").lower()
+                    if choice != 'y':
+                        run_vuln = False
+                except EOFError:
+                    run_vuln = False
+            
+            if run_vuln:
+                print_msg(f"[{target_ip}] Step 3: Vulnerability Scan")
+                cmd = ["nmap", "-n", "-Pn", "-sS", "--script", "vuln", "-p", port_list] + timing_args + [target_ip, "-oA", base_vuln]
+                run_command(cmd, verbose)
+            else:
+                print_msg(f"[{target_ip}] Step 3: Skipped (User declined)")
         else:
             print_msg(f"[{target_ip}] Step 3: Skipped (Exists)")
 
