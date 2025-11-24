@@ -70,7 +70,7 @@ def parse_open_ports(xml_file):
         print_msg(f"Could not parse XML ({xml_file}): {e}", "error")
         return []
 
-def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vuln, verbose=False):
+def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vuln, verbose=False, is_from_file=False):
     """Main scanning logic for a single host."""
     
     # Create Directory for IP
@@ -91,7 +91,11 @@ def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vul
     # --- Step 1: TCP Discovery ---
     if not os.path.exists(f"{base_discovery}.xml"):
         print_msg(f"[{target_ip}] Step 1: Full TCP Discovery Scan")
-        cmd = ["nmap", "-n", "-Pn", "-sS", "-p-"] + timing_args + [target_ip, "-oA", base_discovery]
+        # Add -v flag for verbose discovery scan unless scanning from a file
+        cmd = ["nmap", "-n", "-Pn", "-sS", "-p-"]
+        if not is_from_file:
+            cmd.append("-v")
+        cmd.extend(timing_args + [target_ip, "-oA", base_discovery])
         run_command(cmd, verbose)
     else:
         print_msg(f"[{target_ip}] Step 1: Skipped (Exists)")
@@ -195,7 +199,9 @@ def main():
 
     # 3. Target Parsing
     targets = []
+    is_from_file = False
     if os.path.isfile(args.target):
+        is_from_file = True
         with open(args.target, 'r') as f:
             for line in f:
                 line = line.strip()
@@ -231,7 +237,7 @@ def main():
         try:
             for ip in targets:
                 futures.append(
-                    executor.submit(process_host, ip, args.output, args.timing, args.no_udp, args.udp_all, args.no_vuln, verbose_mode)
+                    executor.submit(process_host, ip, args.output, args.timing, args.no_udp, args.udp_all, args.no_vuln, verbose_mode, is_from_file)
                 )
             
             # Wait for all to complete
