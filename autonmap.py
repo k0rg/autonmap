@@ -70,7 +70,7 @@ def parse_open_ports(xml_file):
         print_msg(f"Could not parse XML ({xml_file}): {e}", "error")
         return []
 
-def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vuln, verbose=False, is_from_file=False):
+def process_host(target_ip, output_base_dir, timing, skip_udp, udp_top100, skip_vuln, verbose=False, is_from_file=False):
     """Main scanning logic for a single host."""
     
     # Create Directory for IP
@@ -144,30 +144,22 @@ def process_host(target_ip, output_base_dir, timing, skip_udp, udp_all, skip_vul
     if not skip_udp:
         if not os.path.exists(f"{base_udp}.xml"):
             run_udp = True
-            use_all_ports = udp_all
+            use_top100 = udp_top100
 
             # Interactive Prompt Logic (Only in verbose/sequential mode and if no specific override set)
-            if verbose and not udp_all:
+            if verbose and not udp_top100:
                 try:
                     choice = input(f"\n{YELLOW}[?] Run UDP scan on {target_ip}? (y/N): {ENDC}").lower()
                     if choice != 'y':
                         run_udp = False
                     else:
-                        print(f"{YELLOW}    [1] Top 1,000 Ports (Standard - Fast){ENDC}")
-                        print(f"{YELLOW}    [2] ALL 65,535 Ports (Comprehensive - Very Slow){ENDC}")
-                        udp_type = input(f"{YELLOW}    Select Option [1/2]: {ENDC}").strip()
-                        if udp_type == '2':
-                            use_all_ports = True
+                        use_top100 = True
                 except EOFError:
                     run_udp = False
 
             if run_udp:
-                if use_all_ports:
-                    print_msg(f"[{target_ip}] Step 4: UDP Scan (ALL PORTS)")
-                    cmd = ["nmap", "-n", "-Pn", "-sU", "-p-"] + timing_args + [target_ip, "-oA", base_udp]
-                else:
-                    print_msg(f"[{target_ip}] Step 4: UDP Scan (Top 1000)")
-                    cmd = ["nmap", "-n", "-Pn", "-sU"] + timing_args + [target_ip, "-oA", base_udp]
+                print_msg(f"[{target_ip}] Step 4: UDP Scan (Top 100)")
+                cmd = ["nmap", "-n", "-Pn", "-sU", "--top-ports", "100"] + timing_args + [target_ip, "-oA", base_udp]
                 
                 run_command(cmd, verbose)
             else:
@@ -184,7 +176,7 @@ def main():
     parser.add_argument("-t", "--threads", type=int, default=1, help="Number of concurrent hosts to scan (default: 1)")
     parser.add_argument("--timing", default="-T4", help="Nmap timing template (default: -T4)")
     parser.add_argument("--no-udp", action="store_true", help="Skip UDP scan")
-    parser.add_argument("--udp-all", action="store_true", help="Run comprehensive UDP scan (all 65535 ports)")
+    parser.add_argument("--udp-top100", action="store_true", help="Run UDP scan on top 100 most popular ports (default when UDP enabled)")
     parser.add_argument("--no-vuln", action="store_true", help="Skip Vulnerability scan")
     
     args = parser.parse_args()
@@ -237,7 +229,7 @@ def main():
         try:
             for ip in targets:
                 futures.append(
-                    executor.submit(process_host, ip, args.output, args.timing, args.no_udp, args.udp_all, args.no_vuln, verbose_mode, is_from_file)
+                    executor.submit(process_host, ip, args.output, args.timing, args.no_udp, args.udp_top100, args.no_vuln, verbose_mode, is_from_file)
                 )
             
             # Wait for all to complete

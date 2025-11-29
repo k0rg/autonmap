@@ -67,7 +67,7 @@ sudo python3 autonmap.py 10.10.11.50 -o ./results --timing "-T5"
 | `-o`, `--output` | Base directory for results | Current Dir |
 | `--timing` | Nmap timing template | -T4 |
 | `--no-udp` | Skip UDP scanning | False |
-| `--udp-all` | Run comprehensive UDP scan (all 65535 ports) | False |
+| `--udp-top100` | Run UDP scan on top 100 most popular ports (default when UDP enabled) | False |
 | `--no-vuln` | Skip Vulnerability scanning | False |
 
 ## Workflow Details
@@ -82,8 +82,8 @@ sudo python3 autonmap.py 10.10.11.50 -o ./results --timing "-T5"
     *   Command: `nmap ... --script vuln ...`
     *   Purpose: Checks for known CVEs on detected services with Nmap's built-in script scans.
 4.  **UDP Scan (Optional):**
-    *   Command: `nmap -n -Pn -sU -T4 <IP>`
-    *   Purpose: Scans top 1,000 UDP ports.
+    *   Command: `nmap -n -Pn -sU --top-ports 100 -T4 <IP>`
+    *   Purpose: Scans top 100 UDP ports.
 
 ## Output Structure
 
