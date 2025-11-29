@@ -67,7 +67,7 @@ sudo python3 autonmap.py 10.10.11.50 -o ./results --timing "-T5"
 | `-o`, `--output` | Base directory for results | Current Dir |
 | `--timing` | Nmap timing template | -T4 |
 | `--no-udp` | Skip UDP scanning | False |
-| `--udp-top100` | Run UDP scan on top 100 most popular ports (default when UDP enabled) | False |
+| `--udp-top100` | Enable UDP scan on top 100 most popular ports | False |
 | `--no-vuln` | Skip Vulnerability scanning | False |
 
 ## Workflow Details

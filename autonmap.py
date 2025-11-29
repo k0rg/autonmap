@@ -176,7 +176,7 @@ def main():
     parser.add_argument("-t", "--threads", type=int, default=1, help="Number of concurrent hosts to scan (default: 1)")
     parser.add_argument("--timing", default="-T4", help="Nmap timing template (default: -T4)")
     parser.add_argument("--no-udp", action="store_true", help="Skip UDP scan")
-    parser.add_argument("--udp-top100", action="store_true", help="Run UDP scan on top 100 most popular ports (default when UDP enabled)")
+    parser.add_argument("--udp-top100", action="store_true", help="Enable UDP scan on top 100 most popular ports")
     parser.add_argument("--no-vuln", action="store_true", help="Skip Vulnerability scan")
     
     args = parser.parse_args()
